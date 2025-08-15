@@ -1,16 +1,31 @@
 spring:
   ai:
+    ollama:
+      base-url: http://127.0.0.1:11434
+      chat:
+        options:
+          model: llama3.2:1b 
+          #keep-alive: 30m 
+          temperature: 0.2 
     mcp:
       client:
+        enabled: true
         type: SYNC
+        request-timeout: 30s
+        toolcallback:
+          enabled: true     
         stdio:
+          root-change-notification: false
           connections:
             elasticsearch:
               command: /home/alexa/mcp-server-elasticsearch/target/release/elasticsearch-core-mcp-server
               args: ["stdio"]
               env:
                 ES_URL: "http://localhost:9200"
+
 logging:
   level:
     org.springframework.ai.mcp: DEBUG
+    io.modelcontextprotocol: DEBUG
+
 

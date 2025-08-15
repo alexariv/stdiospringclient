@@ -30,7 +30,8 @@ public class McpToolPrinter implements CommandLineRunner {
       McpSchema.ListToolsResult res = c.listTools();
       if (res != null && res.tools() != null) {
         res.tools().forEach(t -> log.info("   - tool: {} — {}", t.name(), t.description()));
-        log.warn("   (no tools)");
+       } else {
+         log.warn("   (no tools)");
       }
     }
   }
