@@ -1,0 +1,16 @@
+spring:
+  ai:
+    mcp:
+      client:
+        type: SYNC
+        stdio:
+          connections:
+            elasticsearch:
+              command: /home/alexa/mcp-server-elasticsearch/target/release/elasticsearch-core-mcp-server
+              args: ["stdio"]
+              env:
+                ES_URL: "http://localhost:9200"
+logging:
+  level:
+    org.springframework.ai.mcp: DEBUG
+
