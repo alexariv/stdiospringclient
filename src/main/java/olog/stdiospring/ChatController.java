@@ -22,7 +22,13 @@ public class ChatController {
   public Map<String, Object> chat(@RequestBody Map<String, Object> body) {
     String prompt = String.valueOf(body.getOrDefault("prompt", ""));
     if (prompt.isBlank()) return Map.of("error", "prompt is required");
-    var reply = chat.prompt(prompt).call().content();
+    var reply = chat
+    .prompt() // build a structured prompt
+    .system("If you call a tool, the tool call MUST have 'parameters' as a JSON object (not a string). " +
+            "If a tool isn't necessary, answer directly.")
+    .user(prompt)
+    .call()
+    .content();
     return Map.of("reply", reply);
   }
 
