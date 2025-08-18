@@ -4,8 +4,8 @@ spring:
       base-url: http://127.0.0.1:11434
       chat:
         options:
-          model: llama3.2:1b 
-          #keep-alive: 30m 
+          model: llama3.2:3b
+          keep-alive: 30m 
           temperature: 0.2 
     mcp:
       client:
