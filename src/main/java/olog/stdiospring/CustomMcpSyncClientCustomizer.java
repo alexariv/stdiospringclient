@@ -1,6 +1,6 @@
 package olog.stdiospring;
 
-import io.modelcontextprotocol.client.McpClient;           // for McpClient.SyncSpec
+import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.spec.McpSchema;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,26 +19,36 @@ public class CustomMcpSyncClientCustomizer implements McpSyncClientCustomizer {
   public void customize(String serverConfigurationName, McpClient.SyncSpec spec) {
     log.info("Applying MCP sync customizer for server '{}'", serverConfigurationName);
 
-    // Match the example: set request timeout, and register change/logging consumers
     spec.requestTimeout(Duration.ofSeconds(30));
 
     spec.toolsChangeConsumer((List<McpSchema.Tool> tools) -> {
       log.info("[{}] tools changed (count={}):", serverConfigurationName, tools.size());
-      tools.forEach(t -> log.info("   - {}", t.getName()));
+      for (var t : tools) {
+        // Prefer title() if available, else name()
+        String display = (t.title() != null && !t.title().isEmpty()) ? t.title() : t.name();
+        log.info("   - {} (name='{}')", display, t.name());
+      }
     });
 
     spec.resourcesChangeConsumer((List<McpSchema.Resource> resources) -> {
       log.info("[{}] resources changed (count={})", serverConfigurationName, resources.size());
+      for (var r : resources) {
+        log.info("   - {}", r.name());
+      }
     });
 
     spec.promptsChangeConsumer((List<McpSchema.Prompt> prompts) -> {
       log.info("[{}] prompts changed (count={})", serverConfigurationName, prompts.size());
+      for (var p : prompts) {
+        String display = (p.title() != null && !p.title().isEmpty()) ? p.title() : p.name();
+        log.info("   - {} (name='{}')", display, p.name());
+      }
     });
 
     spec.loggingConsumer((McpSchema.LoggingMessageNotification msg) -> {
-      log.info("[{}] server log: {} - {}", serverConfigurationName, msg.getLevel(), msg.getMessage());
+      String loggerName = (msg.logger() != null && !msg.logger().isEmpty()) ? msg.logger() : "server";
+      log.info("[{}] server log: {} - {} - {}", serverConfigurationName, msg.level(), loggerName, msg.data());
     });
-
-    
   }
 }
+

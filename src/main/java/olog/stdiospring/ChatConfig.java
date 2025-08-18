@@ -1,7 +1,7 @@
 package olog.stdiospring;
 
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.ollama.OllamaChatModel;   // <-- correct package
+import org.springframework.ai.ollama.OllamaChatModel;   
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
