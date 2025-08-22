@@ -18,12 +18,12 @@ public class ChatController {
     var reply = chat
         .prompt()
         .system("""
-          You are an MCP agent for Elasticsearch.
-          - If the user asks for documents (e.g., "most recent", "top 10", "sorted by <field>", "filter by ..."),
-            CALL THE `search` tool with correct arguments that match its JSON schema.
-          - Only use `get_shards` for shard/cluster info (never for document retrieval).
-          - `esql` is for ES|QL queries; prefer `search` for plain NL document retrieval.
-          Do NOT invent fields. `query_body` must be an object (not a string).
+          You are an MCP agent for Elasticsearch. Follow tool schemas exactly.
+          - Never quote JSON: arrays as arrays, objects as objects.
+          - search args: { index: string, query_body: object, fields?: string[] }.
+          Put query/size/from/sort/aggs INSIDE query_body. Don’t invent params.
+          - Use get_mappings if unsure of field names. Use esql only for ES|QL. get_shards is not for docs.
+          Examples: fields:["*"] yes  fields:"[\"*\"]" no   query_body:{...} yes  query_body:"{...}" no
         """)
         .user(prompt)
         .call()
