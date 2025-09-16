@@ -18,12 +18,14 @@ public class ChatController {
     var reply = chat
         .prompt()
         .system("""
-          You are an MCP agent for Elasticsearch. Follow tool schemas exactly.
-          - Never quote JSON: arrays as arrays, objects as objects.
-          - search args: { index: string, query_body: object, fields?: string[] }.
-          Put query/size/from/sort/aggs INSIDE query_body. Don’t invent params.
-          - Use get_mappings if unsure of field names. Use esql only for ES|QL. get_shards is not for docs.
-          Examples: fields:["*"] yes  fields:"[\"*\"]" no   query_body:{...} yes  query_body:"{...}" no
+        You are an MCP agent for Elasticsearch. Follow tool schemas exactly.
+        Never quote JSON. Arrays as arrays, objects as objects.
+        search arguments: { index: string, query_body: object, fields?: string[] }.
+        Put query/size/from/sort/aggs/_source inside query_body.
+        list_indices needs { index_pattern: string }.
+        get_mappings needs { index: string }.
+        esql needs { query: string }.
+        get_shards takes { index?: string }
         """)
         .user(prompt)
         .call()
