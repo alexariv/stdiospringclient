@@ -6,8 +6,6 @@ import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import java.util.List;
-import org.springframework.ai.model.tool.ToolCallback;
 
 @Configuration
 public class ChatConfig {
@@ -18,11 +16,7 @@ public class ChatConfig {
     ChatClient.Builder b = ChatClient.builder(model);
     var mcpTools = maybeMcpTools.getIfAvailable();
     if (mcpTools != null) {
-      List<ToolCallback> raw = mcpTools.getToolCallbacks();
-      List<ToolCallback> safe = raw.stream()
-          .map(SanitizeMcpToolCallback::new)
-          .toList();
-      b = b.defaultToolCallbacks(safe);
+       b = b.defaultToolCallbacks(mcpTools.getToolCallbacks());
     }
 
     return b.build();
