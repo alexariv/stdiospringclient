@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.List;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import olog.stdiospring.McpContentJsonToTextModule;
+
+
 @Component
 public class CustomMcpSyncClientCustomizer implements McpSyncClientCustomizer {
 
