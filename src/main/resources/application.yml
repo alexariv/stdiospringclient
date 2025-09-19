@@ -19,7 +19,7 @@ spring:
           connections:
             elasticsearch:
               #path where the elasticsearch mcp server exist & this command runs it 
-              command: /home/alexa/bin/elastic-mcp-stdio.sh 
+              command: /home/arivera/bin/elastic-mcp-stdio.sh 
               args: []
               env: {}
 logging:
