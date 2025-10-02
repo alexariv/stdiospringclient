@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Chat Prompt UI</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; }
+    textarea, input, button { width: 100%; font-size: 1rem; }
+    textarea { height: 8rem; }
+    .row { margin-bottom: 1rem; }
+    .out { white-space: pre-wrap; border: 1px solid #ccc; padding: .75rem; border-radius: .5rem; min-height: 6rem; }
+  </style>
+</head>
+<body>
+  <h1>Chat Prompt</h1>
+  <div class="row">
+    <label for="prompt">Enter prompt:</label>
+    <textarea id="prompt" placeholder="e.g., Search controls_logs for entries whose title or description mentions ‘database connection’."></textarea>
+  </div>
+  <div class="row">
+    <button id="send">Send (Ctrl+Enter)</button>
+  </div>
+  <h2>Reply</h2>
+  <div id="reply" class="out"></div>
+
+  <script>
+    const promptEl = document.getElementById('prompt');
+    const replyEl  = document.getElementById('reply');
+    const btn      = document.getElementById('send');
+
+    async function send() {
+      const prompt = promptEl.value.trim();
+      if (!prompt) return;
+      replyEl.textContent = 'Loading...';
+      try {
+        const res = await fetch('http://localhost:3000/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        replyEl.textContent = data.reply ?? JSON.stringify(data, null, 2);
+      } catch (err) {
+        replyEl.textContent = 'Error: ' + err.message;
+      }
+    }
+
+    btn.addEventListener('click', send);
+    promptEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send();
+    });
+  </script>
+</body>
+</html>
