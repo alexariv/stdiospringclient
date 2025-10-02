@@ -1,6 +1,4 @@
-import express from 'express';
-import fetch from 'node-fetch';
-
+//CommonJS
 const express = require('express');
 const fetch = require('node-fetch'); 
 const path = require('path');
