@@ -13,7 +13,7 @@ app.post('/api/chat', async (req, res) => {
       body: JSON.stringify(req.body),
     });
     const data = await r.json();
-    res.set('Access-Control-Allow-Origin', '*'); // allow the browser page
+    res.set('Access-Control-Allow-Origin', '*'); // allows browser page
     res.status(r.status).json(data);
   } catch (e) {
     res.status(500).json({ error: String(e) });
