@@ -12,15 +12,13 @@ app.use(express.static(__dirname));
 // SSH-tunneled API
 app.post('/api/chat', async (req, res) => {
   try {
-    const r = await fetch('http://localhost:3000/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body),
-    });
-    const data = await r.json();
+     const text = await upstream.text();
+    let payload = text;
+    try { payload = JSON.parse(text); } catch {}
     res.set('Access-Control-Allow-Origin', '*');
-    res.status(r.status).json(data);
+    res.status(upstream.status).send(payload);
   } catch (e) {
+    console.error('Proxy fetch error:', e);
     res.status(500).json({ error: String(e) });
   }
 });
