@@ -2,24 +2,27 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>Chat Prompt UI</title>
+  <title>MCP LLM</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; }
-    textarea, input, button { width: 100%; font-size: 1rem; }
+    textarea, button { width: 100%; font-size: 1rem; }
     textarea { height: 8rem; }
     .row { margin-bottom: 1rem; }
     .out { white-space: pre-wrap; border: 1px solid #ccc; padding: .75rem; border-radius: .5rem; min-height: 6rem; }
   </style>
 </head>
 <body>
-  <h1>Chat Prompt</h1>
+  <h1>Prompt</h1>
+
   <div class="row">
-    <label for="prompt">Enter prompt:</label>
-    <textarea id="prompt" placeholder="search"></textarea>
+    <textarea id="prompt" placeholder="Enter prompt"></textarea>
   </div>
+
   <div class="row">
-    <button id="send">Send (Ctrl+Enter)</button>
+    <button id="send" type="button">Send (Ctrl+Enter)</button>
   </div>
+
   <h2>Reply</h2>
   <div id="reply" class="out"></div>
 
@@ -31,24 +34,30 @@
     async function send() {
       const prompt = promptEl.value.trim();
       if (!prompt) return;
+      btn.disabled = true;
       replyEl.textContent = 'Loading...';
       try {
-        const res = await fetch('api/chat', {
+        const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({ prompt }),
         });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        replyEl.textContent = data.reply ?? JSON.stringify(data, null, 2);
+        const text = await res.text();
+        let data; try { data = JSON.parse(text); } catch {}
+        replyEl.textContent = (data && typeof data.reply !== 'undefined')
+          ? data.reply
+          : text;
       } catch (err) {
         replyEl.textContent = 'Error: ' + err.message;
+      } finally {
+        btn.disabled = false;
       }
     }
 
     btn.addEventListener('click', send);
+    // Ctrl+Enter shortcut
     promptEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send();
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') send();
     });
   </script>
 </body>

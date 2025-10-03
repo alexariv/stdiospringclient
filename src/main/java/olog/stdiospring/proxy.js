@@ -26,6 +26,6 @@ app.post('/api/chat', async (req, res) => {
 });
 
 app.listen(9000, () => {
-  console.log('UI + Proxy running @ http://localhost:9000');
+  console.log('Now running @ http://localhost:9000/index.html');
 });
 
