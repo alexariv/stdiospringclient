@@ -6,58 +6,81 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { --gap: 0.75rem; }
-    body { font-family: system-ui, sans-serif; margin: 1.25rem; } /* left-aligned */
+    body { font-family: system-ui, sans-serif; margin: 1.25rem; }
     .row { margin-bottom: var(--gap); }
-    .hstack { display: flex; align-items: stretch; gap: var(--gap); }
-    .grow { flex: 1 1 auto; }
-    textarea { width: 100%; font-size: 1rem; height: 8rem; padding: .5rem; }
-    button { font-size: 1rem; padding: .75rem 1rem; }
-    .out { white-space: pre-wrap; border: 1px solid #ccc; padding: .75rem; border-radius: .5rem; min-height: 6rem; }
     .muted { color: #666; font-size: .9rem; }
     .bar { display:flex; align-items:center; gap:.5rem; }
-    .bar strong { font-weight:600; }
+
+    .prompt-line { display:flex; align-items:flex-start; gap:var(--gap); }
+    .prompt-wrap { flex:0 1 auto; width:520px; max-width:90vw; }
+    textarea#prompt {
+      width:100%; font-size:1rem; line-height:1.3; padding:.5rem .6rem;
+      border:1px solid #ccc; border-radius:.5rem; resize:none; overflow:hidden;
+      min-height:2.4rem; max-height:40vh; box-sizing:border-box;
+      white-space:pre-wrap; word-break:break-word;
+    }
+    #send {
+      flex:0 0 auto; width:110px; height:2.6rem; font-size:1rem;
+      border:1px solid #bbb; border-radius:.5rem; background:#f5f5f5; cursor:pointer;
+    }
+    #send:disabled { opacity:.6; cursor:not-allowed; }
+
+    .out {
+      white-space:pre-wrap; border:1px solid #ccc; padding:.75rem;
+      border-radius:.5rem; min-height:6rem; max-width:60%;
+    }
+    .out.waiting { color:#666; }
   </style>
 </head>
 <body>
   <div class="bar row">
-    <strong>LLM Model:</strong>
+    <h2>LLM Model:</h2>
     <span id="modelName" class="muted">loading…</span>
   </div>
-  <div class="row hstack">
-    <textarea id="prompt" class="grow" placeholder="Enter prompt"></textarea>
+
+  <div class="row prompt-line">
+    <div class="prompt-wrap">
+      <textarea id="prompt" placeholder="Enter prompt"></textarea>
+    </div>
     <button id="send" type="button">Send</button>
   </div>
 
   <div class="row muted" id="timing"></div>
 
-  <h2>Reply</h2>
-  <div id="reply" class="out"></div>
+  <h2>Response</h2>
+  <div id="response" class="out"></div>
 
   <script>
-    const promptEl = document.getElementById('prompt');
-    const replyEl  = document.getElementById('reply');
-    const btn      = document.getElementById('send');
-    const timingEl = document.getElementById('timing');
-    const modelEl  = document.getElementById('modelName');
+    const prompts = document.getElementById('prompt');
+    const responses = document.getElementById('response');
+    const btn = document.getElementById('send');
+    const timings = document.getElementById('timing');
+    const models = document.getElementById('modelName');
 
-    // Load model name 
+    // model name
     (async () => {
       try {
         const r = await fetch('/api/model');
         const j = await r.json();
-        modelEl.textContent = j.model || 'unknown';
-      } catch {
-        modelEl.textContent = 'unknown';
-      }
+        models.textContent = j.model || 'unknown';
+      } catch { models.textContent = 'unknown'; }
     })();
 
-    async function send() {
-      const prompt = promptEl.value.trim();
-      if (!prompt) return;
+    // autoresize textarea
+    function autoresize() {
+      prompts.style.height = 'auto';
+      prompts.style.height = Math.min(prompts.scrollHeight, window.innerHeight * 0.4) + 'px';
+    }
+    prompts.addEventListener('input', autoresize);
+    autoresize();
 
+    async function send() {
+      const prompt = prompts.value.trim();
+      if (!prompt) return;
       btn.disabled = true;
-      replyEl.textContent = 'Loading…';
-      timingEl.textContent = '';
+      responses.textContent = 'Waiting for the LLM to reply…';
+      responses.classList.add('waiting');
+      timings.textContent = '';
 
       const t0 = performance.now();
       try {
@@ -70,24 +93,24 @@
 
         const text = await res.text();
         let data; try { data = JSON.parse(text); } catch {}
-        
-        replyEl.textContent = (data && typeof data.reply !== 'undefined') ? data.reply : text;
 
-        // timings: total (browser) + proxy upstream header
-        const totalMs = (t1 - t0).toFixed(1);
-        const upstream = res.headers.get('X-Upstream-Duration-ms');
-        timingEl.textContent = upstream
-          ? `Time: total ${totalMs} ms · upstream ${upstream} ms`
-          : `Time: total ${totalMs} ms`;
+        responses.textContent = (data && typeof data.reply !== 'undefined') ? data.reply : text;
+        responses.classList.remove('waiting');
+        const totalSec = ((t1 - t0) / 1000).toFixed(2);
+        const upstream = res.headers.get('X-Upstream-Duration-s');
+        timings.textContent = upstream
+          ? `Total Time: ${totalSec} s · upstream ${upstream} s`
+          : `Total Time: ${totalSec} s`;
       } catch (err) {
-        replyEl.textContent = 'Error: ' + err.message;
+        responses.textContent = 'Error: ' + err.message;
+        responses.classList.remove('waiting');
       } finally {
         btn.disabled = false;
       }
     }
 
     btn.addEventListener('click', send);
-    promptEl.addEventListener('keydown', (e) => {
+    prompts.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         send();
@@ -96,3 +119,6 @@
   </script>
 </body>
 </html>
+
+
+
