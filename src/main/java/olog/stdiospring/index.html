@@ -5,23 +5,30 @@
   <title>MCP LLM</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 2rem auto; }
-    textarea, button { width: 100%; font-size: 1rem; }
-    textarea { height: 8rem; }
-    .row { margin-bottom: 1rem; }
+    :root { --gap: 0.75rem; }
+    body { font-family: system-ui, sans-serif; margin: 1.25rem; } /* left-aligned */
+    .row { margin-bottom: var(--gap); }
+    .hstack { display: flex; align-items: stretch; gap: var(--gap); }
+    .grow { flex: 1 1 auto; }
+    textarea { width: 100%; font-size: 1rem; height: 8rem; padding: .5rem; }
+    button { font-size: 1rem; padding: .75rem 1rem; }
     .out { white-space: pre-wrap; border: 1px solid #ccc; padding: .75rem; border-radius: .5rem; min-height: 6rem; }
+    .muted { color: #666; font-size: .9rem; }
+    .bar { display:flex; align-items:center; gap:.5rem; }
+    .bar strong { font-weight:600; }
   </style>
 </head>
 <body>
-  <h1>Prompt</h1>
-
-  <div class="row">
-    <textarea id="prompt" placeholder="Enter prompt"></textarea>
+  <div class="bar row">
+    <strong>LLM Model:</strong>
+    <span id="modelName" class="muted">loading…</span>
+  </div>
+  <div class="row hstack">
+    <textarea id="prompt" class="grow" placeholder="Enter prompt"></textarea>
+    <button id="send" type="button">Send</button>
   </div>
 
-  <div class="row">
-    <button id="send" type="button">Send (Ctrl+Enter)</button>
-  </div>
+  <div class="row muted" id="timing"></div>
 
   <h2>Reply</h2>
   <div id="reply" class="out"></div>
@@ -30,23 +37,48 @@
     const promptEl = document.getElementById('prompt');
     const replyEl  = document.getElementById('reply');
     const btn      = document.getElementById('send');
+    const timingEl = document.getElementById('timing');
+    const modelEl  = document.getElementById('modelName');
+
+    // Load model name 
+    (async () => {
+      try {
+        const r = await fetch('/api/model');
+        const j = await r.json();
+        modelEl.textContent = j.model || 'unknown';
+      } catch {
+        modelEl.textContent = 'unknown';
+      }
+    })();
 
     async function send() {
       const prompt = promptEl.value.trim();
       if (!prompt) return;
+
       btn.disabled = true;
-      replyEl.textContent = 'Loading...';
+      replyEl.textContent = 'Loading…';
+      timingEl.textContent = '';
+
+      const t0 = performance.now();
       try {
         const res = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt }),
         });
+        const t1 = performance.now();
+
         const text = await res.text();
         let data; try { data = JSON.parse(text); } catch {}
-        replyEl.textContent = (data && typeof data.reply !== 'undefined')
-          ? data.reply
-          : text;
+        
+        replyEl.textContent = (data && typeof data.reply !== 'undefined') ? data.reply : text;
+
+        // timings: total (browser) + proxy upstream header
+        const totalMs = (t1 - t0).toFixed(1);
+        const upstream = res.headers.get('X-Upstream-Duration-ms');
+        timingEl.textContent = upstream
+          ? `Time: total ${totalMs} ms · upstream ${upstream} ms`
+          : `Time: total ${totalMs} ms`;
       } catch (err) {
         replyEl.textContent = 'Error: ' + err.message;
       } finally {
@@ -55,9 +87,11 @@
     }
 
     btn.addEventListener('click', send);
-    // Ctrl+Enter shortcut
     promptEl.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') send();
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
     });
   </script>
 </body>
