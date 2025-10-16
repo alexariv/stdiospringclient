@@ -4,9 +4,9 @@ spring:
       base-url: http://127.0.0.1:11434
       chat:
         options:
-          model: qwen3:1.7b #must allow tools; list could be found @ https://ollama.com/library 
+          model: qwen3:4b #must allow tools; list could be found @ https://ollama.com/library 
           keep-alive: 30m 
-          temperature: 0.2 
+          temperature: 0.1 
     mcp:
       client:
         enabled: true
@@ -19,9 +19,10 @@ spring:
           connections:
             elasticsearch:
               #path where the elasticsearch mcp server exist & this command runs it 
-              command: /home/arivera/bin/elastic-mcp-stdio.sh 
-              args: []
-              env: {}
+              command: /home/arivera/mcp-server-elasticsearch/target/release/elasticsearch-core-mcp-server
+              args: ["stdio"]
+              env:
+                ES_URL: "http://localhost:9200"
 logging:
   level:
     org.springframework.ai.mcp: DEBUG
