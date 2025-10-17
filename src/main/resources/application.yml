@@ -22,7 +22,7 @@ spring:
               command: /home/arivera/mcp-server-elasticsearch/target/release/elasticsearch-core-mcp-server
               args: ["stdio"]
               env:
-                ES_URL: "http://localhost:9200"
+                ES_URL: "http://localhost:9201"
 logging:
   level:
     org.springframework.ai.mcp: DEBUG
