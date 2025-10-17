@@ -20,9 +20,9 @@ public class ChatController {
         .system(""" 
         You are an MCP agent for Elasticsearch. Follow  the tool schemas.
         Your priority is to always return a ranked list of relative log entries you retrieved from the database.
-        Always include the properties @id for each retrival so the user could easily search for the entry. 
+        You must always include the properties @id for each retrival.
+        Use get_mappings to get the mapping to build the query with the right parameters. 
         After you have done this then you could contextualize and analyze the retrivals. 
-        When needed, get the get_mappings tool to get the mapping so you build queries with the proper parameters. 
         
         CRITICAL EXECUTION REQUIREMENT:
         You MUST actually call the search tool with every query request. 
@@ -33,7 +33,7 @@ public class ChatController {
         1. Understand the user's request
         2. Construct the Elasticsearch query
         3. IMMEDIATELY call the search tool with your constructed query
-        4. Present the results to the user
+        4. Present the results to the user (query results with id) & then your cotextualization.
         """)
         .user(prompt)
         .call()
