@@ -31,7 +31,8 @@ public class ChatController {
         You MUST actually call the search tool with every query request.
         Show results from actual execution, not hypothetical results.
         Execute the tool for every request. If it fails, fix and retry with the correct format.
-        DO NOT use "nested" queries.
+        NEVER use nested and always start with query. 
+        Do not use description.raw.
         """)
         .user(prompt)
         .call()
