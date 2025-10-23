@@ -6,7 +6,7 @@ spring:
         options:
           model: qwen3:8b #must allow tools; list could be found @ https://ollama.com/library 
           keep-alive: 30m 
-          temperature: 0.1 
+          temperature: 0.2 
     mcp:
       client:
         enabled: true
